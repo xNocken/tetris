@@ -1,10 +1,41 @@
+@import 'variables.scss';
+
+#fields {
+  position: relative;
+}
+
 .field {
   display: inline-block;
-  height: 20px;
-  width: 20px;
-  margin: 2px;
-  border: 1px solid gray;
+  height: $blockheight;
+  width: $blockheight;
+  margin: {
+    bottom: $blockmargin;
+    right: $blockmargin;
+  }
+  border: $blockborder solid gray;
   background-color: white;
+
+  &--invisible {
+    border-color: transparent;
+    background-color: transparent;
+  }
+
+  &--yellow {
+    background-color: yellow;
+  }
+
+  &--blue {
+    background-color: blue;
+  }
+
+  &--green {
+    background-color: green;
+  }
+}
+
+.block {
+  position: absolute;
+  top: 0;
 }
 
 .row {

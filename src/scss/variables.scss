@@ -1,0 +1,11 @@
+$blockheight: 40px;
+$blockmargin: 4px;
+$blockborder: 1px;
+
+:export {
+ block: {
+   border: $blockborder;
+   margin: $blockmargin;
+   height: $blockheight;
+ };
+};

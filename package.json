@@ -6,8 +6,7 @@
   "scripts": {
     "dev": "yarn webpack",
     "prod": "yarn webpack -p",
-    "watch": "yarn webpack --watch",
-    "start": "node server/index.js"
+    "watch": "yarn webpack --watch"
   },
   "author": "Marc Lübke",
   "license": "MIT",
@@ -23,8 +22,6 @@
     "eslint-plugin-node": "^10.0.0",
     "eslint-plugin-promise": "^4.2.1",
     "eslint-plugin-standard": "^4.0.1",
-    "fast-css-loader": "^1.0.2",
-    "fast-sass-loader": "^1.5.0",
     "file-loader": "^5.0.2",
     "mini-css-extract-plugin": "^0.8.0",
     "node-sass": "^4.12.0",

@@ -1,8 +1,9 @@
 import $ from 'jquery';
-import generate from './js/generate';
+import { generateField, generateBlock } from './js/generate';
 
 import './scss/main.scss';
 
 $(() => {
-  generate(2);
+  generateField(10);
+  $('#fields').append(generateBlock('lRight'));
 });
