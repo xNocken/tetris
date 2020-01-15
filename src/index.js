@@ -1,9 +1,11 @@
 import $ from 'jquery';
-import { generateField, generateBlock } from './js/generate';
+
+import './js/generate';
+import './config';
 
 import './scss/main.scss';
+import { startGame } from './js/logic';
 
 $(() => {
-  generateField(10);
-  $('#fields').append(generateBlock('lRight'));
+  startGame();
 });

@@ -82,6 +82,11 @@ const blocks = {
     [0, 1, 0],
     [0, 1, 1],
   ],
+  rip: [
+    [1, 1, 1],
+    [1, 0, 1],
+    [1, 1, 1],
+  ],
 };
 
 const config = {
@@ -96,6 +101,8 @@ const config = {
     'green',
     'blue',
   ],
+  longnessMultiplier: 1.75,
+  fieldLength: 10,
 };
 
 let gameState = {};
