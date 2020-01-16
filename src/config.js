@@ -11,7 +11,11 @@ Object.entries(variables).forEach(([key, value]) => {
   names.forEach((name, index) => {
     if (lastName === '') {
       if (index + 1 === names.length) {
-        lastobject[name] = parseInt(value, 10);
+        if (value.includes('px')) {
+          lastobject[name] = parseInt(value, 10);
+        } else {
+          lastobject[name] = value;
+        }
       } else {
         if (!lastobject[name]) {
           lastobject[name] = {};
@@ -20,7 +24,11 @@ Object.entries(variables).forEach(([key, value]) => {
         lastName = name;
       }
     } else if (index + 1 === names.length) {
-      lastobject[lastName][name] = parseInt(value, 10);
+      if (value.includes('px')) {
+        lastobject[lastName][name] = parseInt(value, 10);
+      } else {
+        lastobject[lastName][name] = value;
+      }
     } else {
       if (!lastobject[lastName][name]) {
         lastobject[lastName][name] = {};
@@ -31,14 +39,17 @@ Object.entries(variables).forEach(([key, value]) => {
     }
   });
 
+
   variablesNew = object;
 });
+
 
 const {
   margin,
   border,
   height,
 } = variablesNew.block;
+const { colors } = variablesNew;
 
 
 const blocks = {
@@ -87,22 +98,28 @@ const blocks = {
     [1, 0, 1],
     [1, 1, 1],
   ],
+  debug: [
+    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+  ],
 };
 
 const config = {
+  bodyMargin: 8,
   moveHeight: margin + (border * 2) + height,
   blockstyle: {
     height,
     border,
     margin,
   },
-  colors: [
-    'yellow',
-    'green',
-    'blue',
-  ],
+  colors: colors.split(', '),
   longnessMultiplier: 1.75,
   fieldLength: 10,
+  keyBinds: {
+    left: 37,
+    down: 40,
+    right: 39,
+    up: 38,
+  },
 };
 
 let gameState = {};
@@ -112,9 +129,12 @@ export const getBlock = block => blocks[block];
 export const getGameState = key => gameState[key];
 export const getBlockNames = () => Object.keys(blocks);
 
+
 export const setGameState = (newGameStates) => {
   gameState = {
     ...gameState,
     ...newGameStates,
   };
 };
+
+global.getGameState = getGameState;

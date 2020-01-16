@@ -1,11 +1,17 @@
 import $ from 'jquery';
-import { getBlock, getConfig, getBlockNames, setGameState } from '../config';
+import {
+  getBlock,
+  getConfig,
+  getBlockNames,
+  setGameState,
+} from '../config';
 
 export const generateField = (length) => {
   const $div = $('#fields');
   const fieldsUsed = Array.from({ length: length * getConfig('longnessMultiplier') }, () => Array.from({ length }, () => false));
+  const placedBlocks = Array.from({ length: length * getConfig('longnessMultiplier') }, () => Array.from({ length }, () => false));
 
-  setGameState({ fieldsUsed });
+  setGameState({ fieldsUsed, placedBlocks });
 
   const $fields = Array.from({ length: length * getConfig('longnessMultiplier') }, () => Array.from({ length }, () => {
     const $field = $('<div class="field"></div>');
@@ -21,13 +27,16 @@ export const generateField = (length) => {
       $row.append($item);
     });
   });
+
+  setGameState({ $fields });
 };
 
 export const generateBlock = () => {
   const blocks = getBlockNames('blocks');
   const blockName = blocks[Math.floor(Math.random() * blocks.length)];
   const model = getBlock(blockName);
-  const color = getConfig('colors')[Math.floor(Math.random() * 3)];
+  const colors = getConfig('colors');
+  const color = colors[Math.floor(Math.random() * colors.length)];
   const wrapper = $('<div class="block"></div>');
 
   model.forEach((row) => {
@@ -38,6 +47,11 @@ export const generateBlock = () => {
       const $block = $('<div class="field"></div>');
 
       $block.addClass(`field--${block ? color : 'invisible'}`);
+
+      if (!block) {
+        $block.data('invisible', true);
+      }
+
       $row.append($block);
     });
   });

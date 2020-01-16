@@ -1,4 +1,5 @@
 @import 'variables.scss';
+@import 'mixins.scss';
 
 #fields {
   position: relative;
@@ -20,27 +21,36 @@
     background-color: transparent;
   }
 
-  &--yellow {
-    background-color: yellow;
+  @include colors;
+
+  &:last-child {
+    margin-right: 0;
   }
 
-  &--blue {
-    background-color: blue;
-  }
-
-  &--green {
-    background-color: green;
+  &--overlay {
+    position: absolute;
   }
 }
 
 .block {
   position: absolute;
   top: 0;
+
+  &--one {
+    padding: {
+      top: ($blockheight / 2) + ($blockmargin / 2) + $blockborder;
+      left: ($blockheight / 2) + ($blockmargin / 2) + $blockborder;
+    }
+  }
 }
 
 .row {
   display: flex;
   flex-wrap: nowrap;
+
+  &:last-child .field {
+    margin-bottom: 0;
+  }
 }
 
 #status {
