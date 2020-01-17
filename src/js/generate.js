@@ -35,11 +35,10 @@ export const generateBlock = () => {
   const blocks = getBlockNames('blocks');
   const blockName = blocks[Math.floor(Math.random() * blocks.length)];
   const model = getBlock(blockName);
-  const colors = getConfig('colors');
-  const color = colors[Math.floor(Math.random() * colors.length)];
+  const { color } = model;
   const wrapper = $('<div class="block"></div>');
 
-  model.forEach((row) => {
+  model.structure.forEach((row) => {
     const $row = $('<div class="row"></div>');
 
     wrapper.append($row);

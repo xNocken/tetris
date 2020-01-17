@@ -2,6 +2,10 @@
   @each $name in $colors {
     &--#{$name} {
       background-color: $name;
+
+      &--transparent {
+        background-color: rgba($name, 0.5);
+      }
     }
   }
 }

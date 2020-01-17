@@ -53,57 +53,64 @@ const { colors } = variablesNew;
 
 
 const blocks = {
-  lLeft: [
-    [1, 0],
-    [1, 0],
-    [1, 0],
-    [1, 1],
-  ],
-  lRight: [
-    [0, 1],
-    [0, 1],
-    [0, 1],
-    [1, 1],
-  ],
-  block: [
-    [1, 1],
-    [1, 1],
-  ],
-  long: [
-    [1],
-    [1],
-    [1],
-    [1],
-  ],
-  smallT: [
-    [0, 1, 0],
-    [1, 1, 1],
-  ],
-  uhm: [
-    [1, 1, 0],
-    [0, 1, 1],
-  ],
-  cross: [
-    [0, 1, 0],
-    [1, 1, 1],
-    [0, 1, 0],
-  ],
-  longUhm: [
-    [1, 1, 0],
-    [0, 1, 0],
-    [0, 1, 1],
-  ],
-  rip: [
-    [1, 1, 1],
-    [1, 0, 1],
-    [1, 1, 1],
-  ],
-  debug: [
-    [1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-  ],
+  stick: {
+    color: 'aqua',
+    structure: [
+      [1, 1, 1, 1],
+    ],
+  },
+  leftL: {
+    color: 'blue',
+    structure: [
+      [1, 0, 0],
+      [1, 1, 1],
+    ],
+  },
+  rightL: {
+    color: 'orange',
+    structure: [
+      [0, 0, 1],
+      [1, 1, 1],
+    ],
+  },
+  block: {
+    color: 'yellow',
+    structure: [
+      [1, 1],
+      [1, 1],
+    ],
+  },
+  leftUhm: {
+    color: 'green',
+    structure: [
+      [0, 1, 1],
+      [1, 1, 0],
+    ],
+  },
+  t: {
+    color: 'rebeccapurple',
+    structure: [
+      [0, 1, 0],
+      [1, 1, 1],
+    ],
+  },
+  rightUhm: {
+    color: 'red',
+    structure: [
+      [1, 1, 0],
+      [0, 1, 1],
+    ],
+  },
 };
 
 const config = {
+  scores: [
+    0,
+    50,
+    150,
+    350,
+    1000,
+  ],
   bodyMargin: 8,
   moveHeight: margin + (border * 2) + height,
   blockstyle: {
@@ -112,7 +119,7 @@ const config = {
     margin,
   },
   colors: colors.split(', '),
-  longnessMultiplier: 1.75,
+  longnessMultiplier: 2,
   fieldLength: 10,
   keyBinds: {
     left: 37,
@@ -126,7 +133,7 @@ let gameState = {};
 
 export const getConfig = key => config[key];
 export const getBlock = block => blocks[block];
-export const getGameState = key => gameState[key];
+export const getGameState = key => (key ? gameState[key] : gameState);
 export const getBlockNames = () => Object.keys(blocks);
 
 
@@ -138,3 +145,4 @@ export const setGameState = (newGameStates) => {
 };
 
 global.getGameState = getGameState;
+global.setGameState = setGameState;

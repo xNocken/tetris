@@ -2,7 +2,9 @@
 @import 'mixins.scss';
 
 #fields {
+  display: inline-block;
   position: relative;
+  margin: auto;
 }
 
 .field {
@@ -35,13 +37,6 @@
 .block {
   position: absolute;
   top: 0;
-
-  &--one {
-    padding: {
-      top: ($blockheight / 2) + ($blockmargin / 2) + $blockborder;
-      left: ($blockheight / 2) + ($blockmargin / 2) + $blockborder;
-    }
-  }
 }
 
 .row {
@@ -53,11 +48,14 @@
   }
 }
 
-#status {
-  height: 160px;
-  overflow-y: auto;
+#score {
+  position: fixed;
+  z-index: 1;
+}
 
-  .warning {
-    color: red;
-  }
+#preview {
+  display: inline-block;
+  right: 5px;
+  border: gray solid 1px;
+  top: 0.5%;
 }
