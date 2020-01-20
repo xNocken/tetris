@@ -44,12 +44,8 @@ Object.entries(variables).forEach(([key, value]) => {
 });
 
 
-const {
-  margin,
-  border,
-  height,
-} = variablesNew.block;
-const { colors } = variablesNew;
+const { colors, block } = variablesNew;
+const { margin, border, height } = block;
 
 
 const blocks = {
@@ -104,6 +100,8 @@ const blocks = {
 };
 
 const config = {
+  previewCount: 5,
+  blockDestroyblinkDelay: 150,
   scores: [
     0,
     50,
@@ -111,7 +109,6 @@ const config = {
     350,
     1000,
   ],
-  bodyMargin: 8,
   moveHeight: margin + (border * 2) + height,
   blockstyle: {
     height,
@@ -132,7 +129,7 @@ const config = {
 let gameState = {};
 
 export const getConfig = key => config[key];
-export const getBlock = block => blocks[block];
+export const getBlock = blockName => blocks[blockName];
 export const getGameState = key => (key ? gameState[key] : gameState);
 export const getBlockNames = () => Object.keys(blocks);
 

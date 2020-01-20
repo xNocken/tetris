@@ -9,12 +9,13 @@ const scoringSystem = (lineAmount) => {
   let level = getGameState('level') || 0;
   const scores = getConfig('scores') || 0;
 
-  if (clearedRows >= 10) {
+  while (clearedRows >= 10) {
     level += 1;
     clearedRows -= 10;
   }
 
-  score += scores[lineAmount] * (level + 1);
+  score += scores[lineAmount]
+    !== undefined ? scores[lineAmount] : scores[scores.length - 1] * (level + 1);
   $('#score').text(`Level: ${level}, Score: ${score}, Cleared lines: ${clearedRows + (level * 10)}`);
   setGameState({ score, clearedRows, level });
 };
@@ -44,24 +45,35 @@ const checkLineRemove = () => {
         if (counter === 5) {
           clearInterval(intervall);
         }
-      }, 150);
+      }, getConfig('blockDestroyblinkDelay'));
 
-      fieldsUsed.splice(rowIndex, 1);
-      fieldsUsed.unshift(Array.from({ length: getConfig('fieldLength') }, () => false));
+      setTimeout(() => {
+        fieldsUsed.splice(rowIndex, 1);
+        fieldsUsed.unshift(Array.from({ length: getConfig('fieldLength') }, () => false));
+      }, getConfig('blockDestroyblinkDelay') * 6);
+
       removedAmount += 1;
     }
   });
 
   scoringSystem(removedAmount);
   setGameState({ fieldsUsed });
+
+  return removedAmount;
+};
+
+const endGame = () => {
+  $(document).unbind('keydown');
 };
 
 const getNewBlock = () => {
   const activeBlock = getGameState('activeBlock');
   const fieldsUsed = getGameState('fieldsUsed');
   const placedBlocks = getGameState('placedBlocks');
+  const fieldPos = $('#fields')[0].getBoundingClientRect();
   const $fields = getGameState('$fields');
   const colors = getConfig('colors');
+  let removed = 0;
 
   if (activeBlock) {
     const blocks = activeBlock.children();
@@ -69,8 +81,8 @@ const getNewBlock = () => {
       $(item).children().each((___, field) => {
         if (!$(field).data('invisible')) {
           const position = {
-            fieldIndex: (field.getBoundingClientRect().left - getConfig('bodyMargin')) / getConfig('moveHeight'),
-            rowIndex: (field.getBoundingClientRect().top - getConfig('bodyMargin')) / getConfig('moveHeight'),
+            fieldIndex: (field.getBoundingClientRect().left - fieldPos.left) / getConfig('moveHeight'),
+            rowIndex: (field.getBoundingClientRect().top - fieldPos.top) / getConfig('moveHeight'),
           };
 
           colors.forEach((color, index) => {
@@ -84,7 +96,19 @@ const getNewBlock = () => {
       });
     });
 
-    checkLineRemove();
+    removed = checkLineRemove();
+    setTimeout(() => {
+      fieldsUsed.forEach((row, rowIndex) => {
+        row.forEach((field, fieldIndex) => {
+          if (field !== false) {
+            $fields[rowIndex][fieldIndex][0].classList = `field field--${colors[field]}`;
+          } else {
+            $fields[rowIndex][fieldIndex][0].classList = 'field';
+          }
+        });
+      });
+    }, getConfig('blockDestroyblinkDelay') * 6);
+
     fieldsUsed.forEach((row, rowIndex) => {
       row.forEach((field, fieldIndex) => {
         if (field !== false) {
@@ -96,14 +120,44 @@ const getNewBlock = () => {
     });
 
     activeBlock.remove();
+    setGameState({ isAppended: false });
     setGameState({ placedBlocks, fieldsUsed });
   }
 
-  const newBlock = getGameState('nextBlock') || generateBlock();
-  const nextBlock = generateBlock();
-  setGameState({ activeBlock: newBlock, newBlock, nextBlock });
-  $('#preview').append(nextBlock);
-  $('#fields').append(newBlock);
+  setTimeout(() => {
+    const previews = getGameState('previews') || Array.from({ length: getConfig('previewCount') }, () => generateBlock());
+
+    const newBlock = previews.shift();
+    previews.push(generateBlock());
+    setGameState({ activeBlock: newBlock, previews });
+
+    previews.forEach((preview) => {
+      $('#preview').append(preview);
+    });
+
+    $('#fields').append(newBlock);
+    const blocks = newBlock.children();
+    let gameOver = false;
+
+    blocks.each((index, rows) => {
+      $(rows).children().each((index2, field) => {
+        const position = {
+          fieldIndex: (field.getBoundingClientRect().left - fieldPos.left) / getConfig('moveHeight'),
+          rowIndex: (field.getBoundingClientRect().top - fieldPos.top) / getConfig('moveHeight'),
+        };
+
+        if (fieldsUsed[position.rowIndex][position.fieldIndex] !== false) {
+          gameOver = true;
+        }
+      });
+    });
+
+    if (gameOver) {
+      endGame();
+    }
+
+    setGameState({ isAppended: true, gameOver });
+  }, removed ? getConfig('blockDestroyblinkDelay') * 6 : 0);
 };
 
 const rotateBlock = () => {
@@ -111,18 +165,20 @@ const rotateBlock = () => {
   const rotation = $activeBlock.data('rotation') || 0;
   const blocks = $activeBlock.children();
   const moveHeight = getConfig('moveHeight');
-  const bodyMargin = getConfig('bodyMargin');
+  const fieldPos = $('#fields')[0].getBoundingClientRect();
   const fieldsUsed = getGameState('fieldsUsed');
+  let invalid = false;
+  const direction = { rowIndex: 0, fieldIndex: 0 };
 
   $activeBlock[0].style.transform = `rotate(${rotation + 90}deg)`;
 
-  const newPos = $activeBlock[0].getBoundingClientRect();
+  let newPos = $activeBlock[0].getBoundingClientRect();
   let rotated = getGameState('rotated');
   if (rotated === undefined) {
     rotated = false;
   }
 
-  if ((newPos.left - bodyMargin) % moveHeight !== 0) {
+  if ((newPos.left - fieldPos.left) % moveHeight !== 0) {
     if (rotated) {
       $activeBlock.css({ top: `-=${moveHeight / 2}`, left: `-=${moveHeight / 2}` });
     } else {
@@ -130,19 +186,31 @@ const rotateBlock = () => {
     }
   }
 
-  let invalid = false;
 
-  blocks.each((index, item) => {
-    $(item).children().each((index2, field) => {
+  blocks.each((_, item) => {
+    $(item).children().each((__, field) => {
       if (!$(field).data('invisible')) {
         const position = {
-          fieldIndex: (field.getBoundingClientRect().left - getConfig('bodyMargin')) / getConfig('moveHeight'),
-          rowIndex: (field.getBoundingClientRect().top - getConfig('bodyMargin')) / getConfig('moveHeight'),
+          fieldIndex: (field.getBoundingClientRect().left - fieldPos.left) / getConfig('moveHeight'),
+          rowIndex: (field.getBoundingClientRect().top - fieldPos.top) / getConfig('moveHeight'),
         };
 
         const { rowIndex, fieldIndex } = position;
 
-        if (fieldsUsed[rowIndex] === undefined || fieldsUsed[rowIndex][fieldIndex] !== false) {
+        if (rowIndex < 0) {
+          invalid = true;
+          direction.rowIndex += 1;
+        } else if (rowIndex >= fieldsUsed.length) {
+          invalid = true;
+          direction.rowIndex += -1;
+        } else if (fieldIndex < 0) {
+          invalid = true;
+          direction.fieldIndex += 1;
+        } else if (fieldIndex >= fieldsUsed[rowIndex].length) {
+          invalid = true;
+          direction.fieldIndex += -1;
+        } else if (fieldsUsed[rowIndex] === undefined
+          || fieldsUsed[rowIndex][fieldIndex] !== false) {
           invalid = true;
         }
       }
@@ -150,24 +218,46 @@ const rotateBlock = () => {
   });
 
   if (invalid) {
-    $activeBlock[0].style.transform = `rotate(${rotation}deg)`;
-    setGameState({ rotated: !rotated });
+    $activeBlock.css({ top: `+=${direction.rowIndex * moveHeight}`, left: `+=${direction.fieldIndex * moveHeight}` });
 
-    if ((newPos.left - bodyMargin) % moveHeight !== 0) {
+    if (direction.rowIndex === 0 && direction.fieldIndex === 0) {
+      $activeBlock[0].style.transform = `rotate(${rotation}deg)`;
+    }
+
+    newPos = $activeBlock[0].getBoundingClientRect();
+    if ((newPos.left - fieldPos.left) % moveHeight !== 0) {
       if (!rotated) {
         $activeBlock.css({ top: `-=${moveHeight / 2}`, left: `-=${moveHeight / 2}` });
       } else {
         $activeBlock.css({ top: `+=${moveHeight / 2}`, left: `+=${moveHeight / 2}` });
       }
     }
-  } else {
+  }
+
+  if ((direction.rowIndex !== 0 || direction.fieldIndex !== 0) || invalid === false) {
+    setGameState({ rotated: !rotated });
     $activeBlock.data('rotation', rotation + 90);
   }
 };
 
 const click = (event) => {
-  const direction = { fieldIndex: 0, rowIndex: 0 };
+  let prevent = false;
   const keyBinds = getConfig('keyBinds');
+  Object.values(keyBinds).forEach((key) => {
+    if (key === event.which) {
+      prevent = true;
+    }
+  });
+
+  if (event.preventDefault && prevent) {
+    event.preventDefault();
+  }
+
+  if (!getGameState('isAppended')) {
+    return;
+  }
+
+  const direction = { fieldIndex: 0, rowIndex: 0 };
 
   switch (event.which) {
     case (keyBinds.down):
@@ -194,13 +284,14 @@ const click = (event) => {
   const blocks = $activeBlock.children();
   let invalid = false;
   const blockPositions = [];
+  const fieldPos = $('#fields')[0].getBoundingClientRect();
 
   blocks.each((index, item) => {
     $(item).children().each((index2, field) => {
       if (!$(field).data('invisible')) {
         const position = {
-          fieldIndex: (field.getBoundingClientRect().left - getConfig('bodyMargin')) / getConfig('moveHeight'),
-          rowIndex: (field.getBoundingClientRect().top - getConfig('bodyMargin')) / getConfig('moveHeight'),
+          fieldIndex: (field.getBoundingClientRect().left - fieldPos.left) / getConfig('moveHeight'),
+          rowIndex: (field.getBoundingClientRect().top - fieldPos.top) / getConfig('moveHeight'),
         };
 
         blockPositions.push(position);
@@ -224,6 +315,7 @@ const click = (event) => {
 
   if (!invalid) {
     $activeBlock.css({ left: newPosLeft, top: newPosTop });
+    $activeBlock[0].focus();
   }
 
   if (invalid && event.which === keyBinds.down) {
@@ -234,12 +326,15 @@ const click = (event) => {
 // eslint-disable-next-line import/prefer-default-export
 export const startGame = () => {
   generateField(getConfig('fieldLength'));
-
   getNewBlock();
 
   $(document).on('keydown', (event) => { click(event); });
 
-  setInterval(() => {
+  const intervall = setInterval(() => {
+    const gameOver = getGameState('gameOver');
+    if (gameOver) {
+      clearInterval(intervall);
+    }
     click({ which: getConfig('keyBinds').down });
   }, 1000);
 };
