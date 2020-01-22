@@ -100,8 +100,12 @@ const blocks = {
 };
 
 const config = {
-  previewCount: 5,
   blockDestroyblinkDelay: 150,
+  colors: colors.split(', '),
+  initialInterval: 1000,
+  timeDecrementPerLevel: 90,
+  minSpeed: 50,
+  previewCount: 5,
   scores: [
     0,
     50,
@@ -115,7 +119,6 @@ const config = {
     border,
     margin,
   },
-  colors: colors.split(', '),
   longnessMultiplier: 2,
   fieldLength: 10,
   keyBinds: {
@@ -123,6 +126,8 @@ const config = {
     down: 40,
     right: 39,
     up: 38,
+    num0: 96,
+    space: 32,
   },
 };
 
