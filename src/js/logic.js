@@ -2,10 +2,7 @@ import $ from 'jquery';
 
 import { generateField } from './generate';
 import { getConfig, getGameState, setGameState } from '../config';
-import {
-  updatePosition,
-  rotateBlock,
-} from './renderer';
+import { updatePosition, rotateBlock } from './renderer';
 import { getNewBlock } from './spawn';
 import { softDrop, hardDrop } from './score';
 
@@ -32,7 +29,9 @@ const click = (event) => {
   switch (event.which) {
     case (keyBinds.down):
       direction.rowIndex = 1;
-      softDrop();
+      if (event.preventDefault) {
+        softDrop();
+      }
       break;
 
     case (keyBinds.right):

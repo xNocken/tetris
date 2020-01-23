@@ -1,16 +1,21 @@
 import $ from 'jquery';
-import { getConfig, getGameState, setGameState } from '../config';
+import {
+  getConfig,
+  getGameState,
+  setGameState,
+  getEndscreen,
+} from '../config';
 
 export const endGame = () => {
   $(document).unbind('keydown');
 
   const endGameField = $('#endgame');
   const wrapper = $('<div id="endgame--wrapper"></div>');
+  const endScreenvars = getEndscreen();
 
-  wrapper.append(`<p>Score: ${getGameState('score')}</p>`);
-  wrapper.append(`<p>Level: ${getGameState('level')}</p>`);
-  wrapper.append(`<p>Cleared lines: ${getGameState('clearedRows') + (10 * getGameState('level'))}</p>`);
-  wrapper.append(`<p>Speed: ${getConfig('initialInterval') - getGameState('currentSpeed') || 0}</p>`);
+  endScreenvars.forEach((endScreen) => {
+    wrapper.append(`<p>${endScreen.name}: ${endScreen.value}</p>`);
+  });
 
   endGameField.empty();
   endGameField.append(wrapper);
@@ -62,8 +67,8 @@ export const updatePosition = (direction) => {
     $(item).children().each((index2, field) => {
       if (!$(field).data('invisible')) {
         const position = {
-          fieldIndex: (field.getBoundingClientRect().left - fieldPos.left) / getConfig('moveHeight'),
-          rowIndex: (field.getBoundingClientRect().top - fieldPos.top) / getConfig('moveHeight'),
+          fieldIndex: (Math.round(field.getBoundingClientRect().left - fieldPos.left)) / getConfig('moveHeight'),
+          rowIndex: (Math.round(field.getBoundingClientRect().top - fieldPos.top)) / getConfig('moveHeight'),
         };
 
         blockPositions.push(position);
@@ -111,7 +116,7 @@ export const rotateBlock = () => {
     rotated = false;
   }
 
-  if ((newPos.left - fieldPos.left) % moveHeight !== 0) {
+  if ((Math.round(newPos.left - fieldPos.left) % moveHeight !== 0)) {
     if (rotated) {
       $activeBlock.css({ top: `-=${moveHeight / 2}`, left: `-=${moveHeight / 2}` });
     } else {
@@ -123,8 +128,8 @@ export const rotateBlock = () => {
   blocks.each((_, item) => {
     $(item).children().each((__, field) => {
       if (!$(field).data('invisible')) {
-        const fieldIndex = (field.getBoundingClientRect().left - fieldPos.left) / getConfig('moveHeight');
-        const rowIndex = (field.getBoundingClientRect().top - fieldPos.top) / getConfig('moveHeight');
+        const fieldIndex = (Math.round(field.getBoundingClientRect().left - fieldPos.left)) / getConfig('moveHeight');
+        const rowIndex = (Math.round(field.getBoundingClientRect().top - fieldPos.top)) / getConfig('moveHeight');
 
         if (rowIndex < 0) {
           invalid = true;
@@ -167,4 +172,36 @@ export const rotateBlock = () => {
     setGameState({ rotated: !rotated });
     $activeBlock.data('rotation', rotation + 90);
   }
+};
+
+export const flipFields = (fieldsUsed) => {
+  const newFields = [];
+  console.log(JSON.parse(JSON.stringify(fieldsUsed)));
+  for (let i = 0; i < fieldsUsed.length; i += 1) {
+    newFields[i] = fieldsUsed[fieldsUsed.length - 1 - i];
+  }
+
+  const emptyLines = [];
+
+  newFields.forEach((item, index) => {
+    let isEmpty = true;
+
+    item.forEach((field) => {
+      if (field !== false) {
+        isEmpty = false;
+      }
+    });
+
+    if (isEmpty) {
+      emptyLines.push(index);
+    }
+  });
+
+  emptyLines.forEach((row) => {
+    newFields.splice(row, 1);
+    newFields.unshift(Array.from({ length: getConfig('fieldLength') }, () => false));
+  });
+
+  updateLines(newFields);
+  setGameState({ fieldsUsed: newFields });
 };

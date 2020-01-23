@@ -1,7 +1,7 @@
 import $ from 'jquery';
 
 import { setGameState, getConfig, getGameState } from '../config';
-import { updateLines, blinkLines, endGame } from './renderer';
+import { updateLines, blinkLines, endGame, flipFields } from './renderer';
 import { calculateScore } from './score';
 import { generateBlock } from './generate';
 
@@ -12,6 +12,7 @@ export const checkLineRemove = () => {
 
   fieldsUsed.forEach((row, rowIndex) => {
     let remove = true;
+
     row.forEach((field) => {
       if (field === false) {
         remove = false;
@@ -24,8 +25,8 @@ export const checkLineRemove = () => {
     }
   });
 
-  calculateScore(removedAmount);
   setGameState({ fieldsUsed });
+  calculateScore(removedAmount);
 
   return removedAmount;
 };
@@ -33,6 +34,7 @@ export const checkLineRemove = () => {
 const spawnNewBlock = (fieldsUsed) => {
   const previews = getGameState('previews') || Array.from({ length: getConfig('previewCount') }, () => generateBlock());
   const fieldPos = $('#fields')[0].getBoundingClientRect();
+  let gameOver = false;
   const newBlock = previews.shift();
 
   previews.push(generateBlock());
@@ -44,13 +46,12 @@ const spawnNewBlock = (fieldsUsed) => {
 
   $('#fields').append(newBlock);
   const blocks = newBlock.children();
-  let gameOver = false;
 
   blocks.each((index, rows) => {
     $(rows).children().each((index2, field) => {
       const position = {
-        fieldIndex: (field.getBoundingClientRect().left - fieldPos.left) / getConfig('moveHeight'),
-        rowIndex: (field.getBoundingClientRect().top - fieldPos.top) / getConfig('moveHeight'),
+        fieldIndex: (Math.round(field.getBoundingClientRect().left - fieldPos.left)) / getConfig('moveHeight'),
+        rowIndex: (Math.round(field.getBoundingClientRect().top - fieldPos.top)) / getConfig('moveHeight'),
       };
 
       if (fieldsUsed[position.rowIndex][position.fieldIndex] !== false) {
@@ -69,7 +70,7 @@ const spawnNewBlock = (fieldsUsed) => {
 
 export const getNewBlock = (dontSafe) => {
   const activeBlock = getGameState('activeBlock');
-  const fieldsUsed = getGameState('fieldsUsed');
+  let fieldsUsed = getGameState('fieldsUsed');
   const placedBlocks = getGameState('placedBlocks');
   const fieldPos = $('#fields')[0].getBoundingClientRect();
   const colors = getConfig('colors');
@@ -82,8 +83,8 @@ export const getNewBlock = (dontSafe) => {
         $(item).children().each((___, field) => {
           if (!$(field).data('invisible')) {
             const position = {
-              fieldIndex: (field.getBoundingClientRect().left - fieldPos.left) / getConfig('moveHeight'),
-              rowIndex: (field.getBoundingClientRect().top - fieldPos.top) / getConfig('moveHeight'),
+              fieldIndex: (Math.round(field.getBoundingClientRect().left) - Math.round(fieldPos.left)) / getConfig('moveHeight'),
+              rowIndex: (Math.round(field.getBoundingClientRect().top) - Math.round(fieldPos.top)) / getConfig('moveHeight'),
             };
 
             colors.forEach((color, index) => {
@@ -97,7 +98,16 @@ export const getNewBlock = (dontSafe) => {
         });
       });
 
+      setGameState({ fieldsUsed });
       removed = checkLineRemove();
+
+      if (getGameState('flipFields')) {
+        flipFields(fieldsUsed);
+        setGameState({ flipFields: false });
+      }
+
+      fieldsUsed = getGameState('fieldsUsed');
+
       setTimeout(() => {
         updateLines(fieldsUsed);
       }, getConfig('blockDestroyblinkDelay') * 6);
@@ -107,7 +117,7 @@ export const getNewBlock = (dontSafe) => {
 
     activeBlock.remove();
     setGameState({ isAppended: false });
-    setGameState({ placedBlocks, fieldsUsed });
+    setGameState({ placedBlocks });
   }
 
   setTimeout(() => {

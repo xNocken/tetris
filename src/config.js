@@ -100,6 +100,9 @@ const blocks = {
 };
 
 const config = {
+  linesBeforeLevelup: 10,
+  levelsBeforeFlip: 1,
+  rotatingField: true,
   blockDestroyblinkDelay: 150,
   colors: colors.split(', '),
   initialInterval: 1000,
@@ -138,6 +141,33 @@ export const getBlock = blockName => blocks[blockName];
 export const getGameState = key => (key ? gameState[key] : gameState);
 export const getBlockNames = () => Object.keys(blocks);
 
+export const getEndscreen = () => ([
+  {
+    name: 'Score',
+    value: getGameState('score'),
+  }, {
+    name: 'Level',
+    value: getGameState('level'),
+  }, {
+    name: 'Cleared lines',
+    value: getGameState('clearedRows') + (getConfig('linesBeforeLevelup') * getGameState('level')),
+  }, {
+    name: 'Speed',
+    value: `${getGameState('currentSpeed') || getConfig('initialInterval')}ms`,
+  }, {
+    name: '1 Line',
+    value: getGameState('oneLine'),
+  }, {
+    name: '2 Lines',
+    value: getGameState('twoLines'),
+  }, {
+    name: '3 Lines',
+    value: getGameState('threeLines'),
+  }, {
+    name: 'Tetris',
+    value: getGameState('tetris'),
+  },
+]);
 
 export const setGameState = (newGameStates) => {
   gameState = {
