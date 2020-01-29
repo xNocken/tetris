@@ -22,25 +22,6 @@ export const endGame = () => {
   endGameField.show();
 };
 
-export const blinkLines = ($fields, rowIndex) => {
-  const fieldsUsed = getGameState('fieldsUsed');
-  const colors = getConfig('colors');
-  let counter = 0;
-
-  const intervall = setInterval(() => {
-    $fields[rowIndex].forEach(($field, index) => {
-      $field.toggleClass(`field--${colors[fieldsUsed[rowIndex][index]]}--transparent`);
-    });
-
-    counter += 1;
-    if (counter === 5) {
-      clearInterval(intervall);
-      fieldsUsed.splice(rowIndex, 1);
-      fieldsUsed.unshift(Array.from({ length: getConfig('fieldLength') }, () => false));
-    }
-  }, getConfig('blockDestroyblinkDelay'));
-};
-
 export const updateLines = (fieldsUsed) => {
   const colors = getConfig('colors');
   const $fields = getGameState('$fields');
@@ -54,6 +35,63 @@ export const updateLines = (fieldsUsed) => {
       }
     });
   });
+};
+
+export const flipFields = () => {
+  const fieldsUsed = getGameState('fieldsUsed');
+  const newFields = fieldsUsed.reverse();
+  const emptyLines = [];
+
+  newFields.forEach((item, index) => {
+    let isEmpty = true;
+
+    item.forEach((field) => {
+      if (field !== false) {
+        isEmpty = false;
+      }
+    });
+
+    if (isEmpty) {
+      emptyLines.push(index);
+    }
+  });
+
+  emptyLines.forEach((row) => {
+    newFields.splice(row, 1);
+    newFields.unshift(Array.from({ length: getConfig('fieldLength') }, () => false));
+  });
+
+  setGameState({ fieldsUsed: newFields });
+};
+
+export const blinkLines = ($fields, rowsToRemove) => {
+  const fieldsUsed = getGameState('fieldsUsed');
+  const colors = getConfig('colors');
+  const counter = [];
+
+  const intervall = setInterval(() => {
+    rowsToRemove.forEach((rowIndex) => {
+      $fields[rowIndex].forEach(($field, index) => {
+        $field.toggleClass(`field--${colors[fieldsUsed[rowIndex][index]]}--transparent`);
+      });
+
+      counter[rowIndex] = counter[rowIndex] ? counter[rowIndex] + 1 : 1;
+      if (counter[rowIndex] === 5) {
+        clearInterval(intervall);
+        fieldsUsed.splice(rowIndex, 1);
+        fieldsUsed.unshift(Array.from({ length: getConfig('fieldLength') }, () => false));
+      }
+    });
+
+    if (counter[rowsToRemove[0]] === 5) {
+      if (getGameState('flipFields')) {
+        flipFields();
+        setGameState({ flipFields: false });
+      }
+    }
+  }, getConfig('blockDestroyblinkDelay'));
+
+  return rowsToRemove.length || 0;
 };
 
 export const updatePosition = (direction) => {
@@ -172,36 +210,4 @@ export const rotateBlock = () => {
     setGameState({ rotated: !rotated });
     $activeBlock.data('rotation', rotation + 90);
   }
-};
-
-export const flipFields = (fieldsUsed) => {
-  const newFields = [];
-  console.log(JSON.parse(JSON.stringify(fieldsUsed)));
-  for (let i = 0; i < fieldsUsed.length; i += 1) {
-    newFields[i] = fieldsUsed[fieldsUsed.length - 1 - i];
-  }
-
-  const emptyLines = [];
-
-  newFields.forEach((item, index) => {
-    let isEmpty = true;
-
-    item.forEach((field) => {
-      if (field !== false) {
-        isEmpty = false;
-      }
-    });
-
-    if (isEmpty) {
-      emptyLines.push(index);
-    }
-  });
-
-  emptyLines.forEach((row) => {
-    newFields.splice(row, 1);
-    newFields.unshift(Array.from({ length: getConfig('fieldLength') }, () => false));
-  });
-
-  updateLines(newFields);
-  setGameState({ fieldsUsed: newFields });
 };

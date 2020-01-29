@@ -53,15 +53,21 @@
 }
 
 #preview {
+  vertical-align: top;
   display: inline-block;
-  right: 5px;
+  margin-left: 10px;
   border: gray solid 1px;
   top: 0.5%;
 
   .block {
-    display: block;
+    display: flex;
     position: relative;
-    margin-bottom: 10px;
+    margin-top: 10px;
+    height: $blockPreviewHeight - $blockheight;
+    width: $blockPreviewHeight + $previewMargin;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
   }
 }
 

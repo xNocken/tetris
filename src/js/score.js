@@ -1,13 +1,12 @@
 import $ from 'jquery';
 import { setGameState, getConfig, getGameState } from '../config';
-import { flipFields } from './renderer';
 
 const updateScore = () => {
   const score = getGameState('score') || 0;
   const clearedRows = (getGameState('clearedRows') || 0);
   const level = getGameState('level') || 0;
 
-  $('#score').text(`Level: ${level}, Score: ${score}, Cleared lines: ${clearedRows + (level * 10)}`);
+  $('#score').text(`Level: ${level}, Score: ${score}, Cleared lines: ${clearedRows + (level * getConfig('linesBeforeLevelup'))}`);
 };
 
 export const calculateScore = (lineAmount) => {
@@ -61,6 +60,7 @@ export const calculateScore = (lineAmount) => {
 
   score += scores[lineAmount]
     !== undefined ? scores[lineAmount] : scores[scores.length - 1] * (level + 1);
+
   setGameState({
     score,
     clearedRows,

@@ -11,7 +11,7 @@ Object.entries(variables).forEach(([key, value]) => {
   names.forEach((name, index) => {
     if (lastName === '') {
       if (index + 1 === names.length) {
-        if (value.includes('px')) {
+        if (value.indexOf('px') > -1) {
           lastobject[name] = parseInt(value, 10);
         } else {
           lastobject[name] = value;
@@ -24,7 +24,7 @@ Object.entries(variables).forEach(([key, value]) => {
         lastName = name;
       }
     } else if (index + 1 === names.length) {
-      if (value.includes('px')) {
+      if (value.indexOf('px') > -1) {
         lastobject[lastName][name] = parseInt(value, 10);
       } else {
         lastobject[lastName][name] = value;
@@ -101,13 +101,14 @@ const blocks = {
 
 const config = {
   linesBeforeLevelup: 10,
-  levelsBeforeFlip: 1,
+  levelsBeforeFlip: 3,
+  spawnNextBlockAfterHardDrop: true,
   rotatingField: true,
   blockDestroyblinkDelay: 150,
   colors: colors.split(', '),
   initialInterval: 1000,
   timeDecrementPerLevel: 90,
-  minSpeed: 50,
+  minSpeed: 1000,
   previewCount: 5,
   scores: [
     0,
@@ -176,5 +177,6 @@ export const setGameState = (newGameStates) => {
   };
 };
 
+// TODO: remove this
 global.getGameState = getGameState;
 global.setGameState = setGameState;

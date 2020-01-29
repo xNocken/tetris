@@ -68,8 +68,11 @@ const click = (event) => {
   const invalid = updatePosition(direction);
 
   if (invalid && event.which === keyBinds.down) {
+    if (getGameState('hardDropComplete') || getConfig('spawnNextBlockAfterHardDrop')) {
+      getNewBlock();
+    }
+
     setGameState({ hardDropComplete: true });
-    getNewBlock();
   }
 };
 

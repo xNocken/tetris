@@ -1,7 +1,7 @@
 import $ from 'jquery';
 
 import { setGameState, getConfig, getGameState } from '../config';
-import { updateLines, blinkLines, endGame, flipFields } from './renderer';
+import { updateLines, blinkLines, endGame } from './renderer';
 import { calculateScore } from './score';
 import { generateBlock } from './generate';
 
@@ -9,6 +9,7 @@ export const checkLineRemove = () => {
   const fieldsUsed = getGameState('fieldsUsed');
   const $fields = getGameState('$fields');
   let removedAmount = 0;
+  const rowsToRemove = [];
 
   fieldsUsed.forEach((row, rowIndex) => {
     let remove = true;
@@ -20,19 +21,18 @@ export const checkLineRemove = () => {
     });
 
     if (remove) {
-      blinkLines($fields, rowIndex);
-      removedAmount += 1;
+      rowsToRemove.push(rowIndex);
     }
   });
 
-  setGameState({ fieldsUsed });
+  removedAmount = blinkLines($fields, rowsToRemove);
   calculateScore(removedAmount);
 
   return removedAmount;
 };
 
 const spawnNewBlock = (fieldsUsed) => {
-  const previews = getGameState('previews') || Array.from({ length: getConfig('previewCount') }, () => generateBlock());
+  const previews = getGameState('previews') || Array.from({ length: getConfig('previewCount') }, generateBlock);
   const fieldPos = $('#fields')[0].getBoundingClientRect();
   let gameOver = false;
   const newBlock = previews.shift();
@@ -100,11 +100,6 @@ export const getNewBlock = (dontSafe) => {
 
       setGameState({ fieldsUsed });
       removed = checkLineRemove();
-
-      if (getGameState('flipFields')) {
-        flipFields(fieldsUsed);
-        setGameState({ flipFields: false });
-      }
 
       fieldsUsed = getGameState('fieldsUsed');
 
